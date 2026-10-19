@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ГеоБур — бурение скважин</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            color: white;
+
+            /* Фоновая фотография буровой установки */
+            background:
+                linear-gradient(
+                    rgba(8, 18, 30, 0.72),
+                    rgba(8, 18, 30, 0.82)
+                ),
+                url("https://avantigeo.ru/wp-content/uploads/2026/03/burenie-koda-primenyaetsa01.png");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        /* Верхняя панель */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 7%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: #f5a623;
+        }
+
+        .header-text {
+            color: #d5dce4;
+            font-size: 14px;
+        }
+
+        /* Основной блок */
+        main {
+            min-height: calc(100vh - 90px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 50px;
+            padding: 60px 7%;
+        }
+
+        .intro {
+            max-width: 600px;
+        }
+
+        .intro h1 {
+            font-size: clamp(36px, 5vw, 58px);
+            line-height: 1.15;
+            margin-bottom: 25px;
+        }
+
+        .intro h1 span {
+            color: #f5a623;
+        }
+
+        .intro p {
+            color: #d5dce4;
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 30px;
+        }
+
+        .features {
+            list-style: none;
+            line-height: 2.4;
+            color: #f0f3f6;
+        }
+
+        .features li::before {
+            content: "✓";
+            color: #f5a623;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        /* Окно регистрации */
+        .register-box {
+            width: 100%;
+            max-width: 410px;
+            flex-shrink: 0;
+            padding: 35px;
+            border-radius: 16px;
+
+            background: rgba(17, 29, 43, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        }
+
+        .register-box h2 {
+            font-size: 27px;
+            margin-bottom: 10px;
+        }
+
+        .register-box .subtitle {
+            color: #aeb9c6;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 17px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #e0e6ed;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 7px;
+            border: 1px solid #425064;
+            background: #202f40;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #f5a623;
+            box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #8996a5;
+        }
+
+        .register-button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 7px;
+            background: #f5a623;
+            color: #17212c;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .register-button:hover {
+            background: #ffbb48;
+        }
+
+        .login-link {
+            margin-top: 20px;
+            text-align: center;
+            color: #aeb9c6;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #f5a623;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            padding: 18px 7%;
+            text-align: center;
+            color: #aeb9c6;
+            font-size: 12px;
+        }
+
+        /* Отображение на телефонах */
+        @media (max-width: 850px) {
+            header {
+                padding: 20px 5%;
+            }
+
+            .header-text {
+                display: none;
+            }
+
+            main {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 40px 5%;
+                gap: 35px;
+            }
+
+            .intro h1 {
+                font-size: 38px;
+            }
+
+            .register-box {
+                max-width: 100%;
+            }
+
+            body {
+                background-attachment: scroll;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">ГЕО<span>БУР</span></div>
+        <div class="header-text">
+            Современные технологии бурения скважин
+        </div>
+    </header>
+
+    <main>
+
+        <section class="intro">
+            <h1>
+                Надёжное бурение.<br>
+                <span>Точные решения.</span>
+            </h1>
+
+            <p>
+                Информационная система компании «ГеоБур».
+                Оформляйте заказы на бурение, рассчитывайте стоимость
+                работ и отслеживайте скважины на карте.
+            </p>
+
+            <ul class="features">
+                <li>Карта расположения скважин</li>
+                <li>Удобное оформление заказов</li>
+                <li>Расчёт предварительной сметы</li>
+                <li>Личный кабинет клиента</li>
+            </ul>
+        </section>
+
+        <section class="register-box">
+            <h2>Регистрация</h2>
+
+            <p class="subtitle">
+                Создайте аккаунт, чтобы оформлять заказы
+                и отслеживать их статус.
+            </p>
+
+            <form action="/register" method="POST">
+
+                <div class="form-group">
+                    <label for="full_name">ФИО</label>
+                    <input
+                        type="text"
+                        id="full_name"
+                        name="full_name"
+                        placeholder="Иванов Иван Иванович"
+                        autocomplete="name"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Номер телефона</label>
+                    <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        placeholder="+7 (999) 123-45-67"
+                        autocomplete="tel"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="login">Логин</label>
+                    <input
+                        type="text"
+                        id="login"
+                        name="login"
+                        placeholder="Придумайте логин"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Не менее 8 символов"
+                        minlength="8"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="register-button">
+                    Создать аккаунт
+                </button>
+
+            </form>
+
+            <div class="login-link">
+                Уже есть аккаунт?
+                <a href="/login">Войти</a>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        © 2026 ГеоБур. Информационная система бурения скважин.
+    </footer>
+
+</body>
+</html>

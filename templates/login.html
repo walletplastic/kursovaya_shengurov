@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Вход — ГеоБур</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            color: white;
+
+            background:
+                linear-gradient(
+                    rgba(8, 18, 30, 0.72),
+                    rgba(8, 18, 30, 0.84)
+                ),
+                url("https://avantigeo.ru/wp-content/uploads/2026/03/burenie-koda-primenyaetsa01.png");
+
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Верхняя панель */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 7%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: #f5a623;
+        }
+
+        .header-text {
+            color: #d5dce4;
+            font-size: 14px;
+        }
+
+        /* Центральная часть */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 50px 20px;
+        }
+
+        /* Окно авторизации */
+        .login-box {
+            width: 100%;
+            max-width: 420px;
+            padding: 38px;
+
+            background: rgba(17, 29, 43, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-box h1 {
+            font-size: 30px;
+            margin-bottom: 12px;
+        }
+
+        .login-box h1 span {
+            color: #f5a623;
+        }
+
+        .subtitle {
+            color: #aeb9c6;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 9px;
+            font-size: 14px;
+            color: #e0e6ed;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #425064;
+            border-radius: 7px;
+
+            background: #202f40;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-group input::placeholder {
+            color: #8996a5;
+        }
+
+        .form-group input:focus {
+            border-color: #f5a623;
+            box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.15);
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 5px;
+
+            border: none;
+            border-radius: 7px;
+            background: #f5a623;
+            color: #17212c;
+
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+
+            transition: background 0.2s;
+        }
+
+        .login-button:hover {
+            background: #ffbb48;
+        }
+
+        .register-link {
+            margin-top: 25px;
+            text-align: center;
+            color: #aeb9c6;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .register-link a {
+            color: #f5a623;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            padding: 18px 7%;
+            text-align: center;
+            color: #aeb9c6;
+            font-size: 12px;
+        }
+
+        /* Для телефонов */
+        @media (max-width: 600px) {
+            header {
+                padding: 20px 5%;
+            }
+
+            .header-text {
+                display: none;
+            }
+
+            .login-box {
+                padding: 28px 22px;
+            }
+
+            body {
+                background-attachment: scroll;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <a href="/" class="logo">ГЕО<span>БУР</span></a>
+
+        <div class="header-text">
+            Современные технологии бурения скважин
+        </div>
+    </header>
+
+    <main>
+        <section class="login-box">
+
+            <h1>С возвращением в <span>ГеоБур</span></h1>
+
+            <p class="subtitle">
+                Войдите в свой аккаунт, чтобы просматривать заказы,
+                работать с картой скважин и рассчитывать сметы.
+            </p>
+
+            <form action="/login" method="POST">
+
+                <div class="form-group">
+                    <label for="login">Логин</label>
+
+                    <input
+                        type="text"
+                        id="login"
+                        name="login"
+                        placeholder="Введите ваш логин"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Введите ваш пароль"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="login-button">
+                    Войти в аккаунт
+                </button>
+
+            </form>
+
+            <div class="register-link">
+                Ещё нет аккаунта?<br>
+                <a href="/">Зарегистрироваться</a>
+            </div>
+
+        </section>
+    </main>
+
+    <footer>
+        © 2026 ГеоБур. Информационная система бурения скважин.
+    </footer>
+
+</body>
+</html>
