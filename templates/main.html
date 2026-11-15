@@ -261,6 +261,11 @@
 
         <section class="register-box">
             <h2>Регистрация</h2>
+            {% if error %}
+    <p style="color: #ff7777; margin-bottom: 15px;">
+        {{ error }}
+    </p>
+{% endif %}
 
             <p class="subtitle">
                 Создайте аккаунт, чтобы оформлять заказы
@@ -268,6 +273,7 @@
             </p>
 
             <form action="/register" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="form-group">
                     <label for="full_name">ФИО</label>

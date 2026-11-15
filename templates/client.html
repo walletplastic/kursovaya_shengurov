@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет — ГеоБур</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { min-height: 100vh; font-family: Arial, sans-serif; color: #f4f6f8; background: #101b29; }
+        header { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:22px 7%; border-bottom:1px solid rgba(255,255,255,.12); background:#142235; }
+        .logo { font-size:25px; font-weight:700; letter-spacing:1px; }
+        .logo span { color:#f5a623; }
+        .logout-form button { border:1px solid #536174; border-radius:7px; padding:10px 16px; color:#e8edf2; background:transparent; cursor:pointer; font-size:14px; }
+        .logout-form button:hover { background:#26384d; }
+        main { width:min(1100px, 88%); margin:42px auto; }
+        .eyebrow { color:#f5a623; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.3px; margin-bottom:12px; }
+        h1 { font-size:clamp(28px, 4vw, 40px); margin-bottom:12px; }
+        .welcome { margin-bottom:28px; }
+        .welcome p { color:#b7c2cf; line-height:1.6; }
+        .profile { display:flex; align-items:center; gap:18px; padding:20px; margin-bottom:30px; background:#1a2a3e; border:1px solid #304158; border-radius:12px; }
+        .avatar { width:52px; height:52px; display:grid; place-items:center; flex-shrink:0; border-radius:50%; color:#17212c; background:#f5a623; font-size:22px; font-weight:700; }
+        .profile-label { color:#9eacbb; font-size:13px; margin-bottom:6px; }
+        .profile-name { font-size:18px; font-weight:700; }
+        .profile-login { color:#aeb9c6; font-size:13px; margin-top:5px; }
+        .section-title { font-size:22px; margin-bottom:16px; }
+        .calculator { padding:25px; margin-bottom:28px; border-radius:12px; background:#1a2a3e; border:1px solid #304158; }
+        .calculator-description { color:#aeb9c6; line-height:1.55; font-size:14px; margin-bottom:20px; }
+        .tariffs { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:22px; }
+        .tariff { padding:15px; border-radius:8px; background:#202f40; }
+        .tariff span { display:block; color:#aeb9c6; font-size:12px; line-height:1.4; margin-bottom:8px; }
+        .tariff strong { color:#f5a623; font-size:18px; }
+        .depth-form { display:flex; align-items:flex-start; gap:12px; }
+        .field { flex:1; }
+        label { display:block; color:#e0e6ed; font-size:14px; margin-bottom:8px; }
+        input { width:100%; padding:13px 14px; border:1px solid #425064; border-radius:7px; color:#fff; background:#202f40; font-size:16px; outline:none; }
+        input:focus { border-color:#f5a623; }
+        .calculate-button { align-self:flex-start; height:46px; margin-top:24px; padding:0 20px; border:0; border-radius:7px; color:#17212c; background:#f5a623; font-weight:700; cursor:pointer; white-space:nowrap; }
+        .calculate-button:hover { background:#ffbb48; }
+        .hint { color:#8996a5; font-size:12px; margin-top:8px; }
+        .error { padding:12px 14px; margin-bottom:16px; border-radius:7px; color:#ffc1c1; background:rgba(220,60,60,.13); }
+        .result { margin-top:22px; padding:20px; border-radius:9px; background:#202f40; }
+        .result h3 { font-size:19px; margin-bottom:12px; }
+        .line { display:flex; justify-content:space-between; gap:15px; padding:10px 0; border-bottom:1px solid #38495d; color:#b9c4d0; font-size:14px; }
+        .line strong { color:#f4f6f8; white-space:nowrap; }
+        .total { display:flex; justify-content:space-between; gap:15px; align-items:center; padding-top:17px; margin-top:5px; }
+        .total strong { color:#f5a623; font-size:25px; }
+        .notice { color:#8996a5; font-size:12px; line-height:1.5; margin-top:12px; }
+        .order-form { margin-top:20px; padding-top:18px; border-top:1px solid #38495d; }
+        .order-form > p { color:#b9c4d0; font-size:14px; line-height:1.5; margin-bottom:14px; }
+        .order-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px 12px; }
+        .order-submit { margin-top:16px; padding:13px 18px; border:0; border-radius:7px; color:#17212c; background:#f5a623; font-weight:700; cursor:pointer; }
+        .order-submit:hover { background:#ffbb48; }
+        .orders { display:grid; gap:12px; margin-bottom:30px; }
+        .order-card { padding:18px 20px; border-radius:10px; background:#1a2a3e; border:1px solid #304158; }
+        .order-heading { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
+        .order-heading strong { color:#f5a623; }
+        .order-details { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+        .order-detail span { display:block; color:#9eacbb; font-size:12px; margin-bottom:5px; }
+        .order-detail strong { color:#f4f6f8; font-size:14px; }
+        .empty-orders { padding:18px 20px; border-radius:10px; color:#aeb9c6; background:#1a2a3e; border:1px solid #304158; }
+        .status { display:inline-block; margin-top:12px; padding:5px 9px; border-radius:5px; color:#f5c978; background:rgba(245,166,35,.12); font-size:12px; }
+        footer { padding:25px 7%; color:#8290a0; text-align:center; font-size:12px; }
+        @media(max-width:700px) { header { padding:18px 5%; } main { width:90%; margin:30px auto; } .tariffs,.order-fields,.order-details { grid-template-columns:1fr; } .depth-form { align-items:stretch; flex-direction:column; } .calculate-button,.order-submit { width:100%; margin-top:0; } .profile { align-items:flex-start; } }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">ГЕО<span>БУР</span></div>
+    <form class="logout-form" action="{{ url_for('logout') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Выйти из аккаунта</button>
+    </form>
+</header>
+<main>
+    <section class="welcome">
+        <div class="eyebrow">Личный кабинет клиента</div>
+        <h1>Добро пожаловать!</h1>
+        <p>Рассчитывайте стоимость бурения, а в дальнейшем здесь сможете оформлять заявки и следить за ходом работ.</p>
+    </section>
+
+    <section class="profile">
+        <div class="avatar">К</div>
+        <div>
+            <div class="profile-label">Вы вошли как</div>
+            <div class="profile-name">{{ full_name }}</div>
+            <div class="profile-login">Логин: {{ current_user.login }}</div>
+        </div>
+    </section>
+
+    <h2 class="section-title">Калькулятор бурения</h2>
+    <section class="calculator">
+        <p class="calculator-description">Укажите предполагаемую глубину скважины. Тарифы фиксированы, а итоговая стоимость рассчитывается на сервере.</p>
+        <div class="tariffs">
+            <div class="tariff"><span>Бурение за 1 метр</span><strong>{{ "{:,.0f}".format(drilling_price).replace(",", " ") }} ₽</strong></div>
+            <div class="tariff"><span>Обсадная труба за 1 метр</span><strong>{{ "{:,.0f}".format(pipe_price).replace(",", " ") }} ₽</strong></div>
+            <div class="tariff"><span>Дополнительные работы</span><strong>{{ "{:,.0f}".format(additional_price).replace(",", " ") }} ₽</strong></div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}<div class="error">{{ message }}</div>{% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form class="depth-form" method="POST" action="{{ url_for('client_dashboard') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="field">
+                <label for="depth">Глубина скважины, метров</label>
+                <input id="depth" name="depth" type="number" min="0.1" max="1000" step="0.1"
+                       value="{{ depth }}" placeholder="Например, 100" required>
+                <p class="hint">Допустимая глубина: больше 0 и не более 1000 метров.</p>
+            </div>
+            <button class="calculate-button" type="submit">Рассчитать стоимость</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h3>Предварительная смета</h3>
+            <div class="line"><span>Глубина скважины</span><strong>{{ result.depth }} м</strong></div>
+            <div class="line"><span>Бурение</span><strong>{{ "{:,.2f}".format(result.drilling_cost).replace(",", " ") }} ₽</strong></div>
+            <div class="line"><span>Обсадная труба</span><strong>{{ "{:,.2f}".format(result.pipe_cost).replace(",", " ") }} ₽</strong></div>
+            <div class="line"><span>Дополнительные работы</span><strong>{{ "{:,.2f}".format(result.additional_works).replace(",", " ") }} ₽</strong></div>
+            <div class="total"><span>Итого</span><strong>{{ "{:,.2f}".format(result.total).replace(",", " ") }} ₽</strong></div>
+            <p class="notice">Расчёт предварительный. Итоговая стоимость может уточняться при согласовании заказа.</p>
+            <form class="order-form" action="{{ url_for('create_order') }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="depth" value="{{ result.depth }}">
+                <p>Чтобы оформить заявку, укажите координаты места бурения.</p>
+                <div class="order-fields">
+                    <div>
+                        <label for="latitude">Широта</label>
+                        <input id="latitude" name="latitude" type="number" min="-90" max="90" step="0.000001" placeholder="Например, 51.730000" required>
+                        <p class="hint">От −90 до 90</p>
+                    </div>
+                    <div>
+                        <label for="longitude">Долгота</label>
+                        <input id="longitude" name="longitude" type="number" min="-180" max="180" step="0.000001" placeholder="Например, 36.190000" required>
+                        <p class="hint">От −180 до 180</p>
+                    </div>
+                </div>
+                <button class="order-submit" type="submit">Создать заявку</button>
+            </form>
+        </div>
+        {% endif %}
+    </section>
+
+    <h2 class="section-title">Мои заявки</h2>
+    <section class="orders">
+        {% if orders %}
+            {% for order in orders %}
+            <article class="order-card">
+                <div class="order-heading"><strong>Заявка №{{ order.id }}</strong></div>
+                <div class="order-details">
+                    <div class="order-detail"><span>Глубина</span><strong>{{ "{:.2f}".format(order.depth) }} м</strong></div>
+                    <div class="order-detail"><span>Широта</span><strong>{{ "{:.6f}".format(order.latitude) }}</strong></div>
+                    <div class="order-detail"><span>Долгота</span><strong>{{ "{:.6f}".format(order.longitude) }}</strong></div>
+                    <div class="order-detail"><span>Стоимость</span><strong>{{ "{:,.2f}".format(order.price).replace(",", " ") }} ₽</strong></div>
+                </div>
+            </article>
+            {% endfor %}
+        {% else %}
+            <p class="empty-orders">Вы ещё не создавали заявки. Рассчитайте стоимость и заполните координаты точки бурения.</p>
+        {% endif %}
+    </section>
+</main>
+<footer>© 2026 ГеоБур. Информационная система бурения скважин.</footer>
+</body>
+</html>
