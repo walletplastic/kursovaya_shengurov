@@ -1,6 +1,7 @@
 from decimal import Decimal, InvalidOperation
 
 from flask import Flask, render_template, request, redirect, url_for, flash, abort
+from sqlalchemy import inspect, text
 from config import Config
 from flask_login import (
     LoginManager,
@@ -10,7 +11,7 @@ from flask_login import (
     logout_user,
 )
 from flask_bcrypt import Bcrypt
-from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from models import db, Order, User
 from security import encrypt_data, decrypt_data
 
@@ -29,6 +30,11 @@ login_manager.login_view = "login"
 DRILLING_PRICE_PER_METER = 2500
 PIPE_PRICE_PER_METER = 900
 ADDITIONAL_WORKS_PRICE = 50000
+ORDER_STATUSES = {
+    "registered": "Зарегистрирована",
+    "in_progress": "В работе",
+    "completed": "Выполнена",
+}
 
 
 def calculate_estimate(depth):
@@ -112,6 +118,8 @@ def login():
 
             if user.role == "employee":
                 return redirect(url_for("employee_map"))
+            if user.role == "admin":
+                return redirect(url_for("admin_dashboard"))
             if user.role == "client":
                 return redirect(url_for("client_dashboard"))
 
@@ -129,7 +137,7 @@ def login():
 @app.route("/client", methods=["GET", "POST"])
 @login_required
 def client_dashboard():
-    if current_user.role != "client":
+    if current_user.role not in ("client", "admin"):
         abort(403)
 
     result = None
@@ -175,6 +183,7 @@ def client_dashboard():
         depth=depth_value,
         result=result,
         orders=orders,
+        order_statuses=ORDER_STATUSES,
         drilling_price=DRILLING_PRICE_PER_METER,
         pipe_price=PIPE_PRICE_PER_METER,
         additional_price=ADDITIONAL_WORKS_PRICE,
@@ -184,7 +193,7 @@ def client_dashboard():
 @app.route("/orders/create", methods=["POST"])
 @login_required
 def create_order():
-    if current_user.role != "client":
+    if current_user.role not in ("client", "admin"):
         abort(403)
 
     try:
@@ -223,6 +232,122 @@ def create_order():
     return redirect(url_for("client_dashboard"))
 
 
+@app.route("/employee/map")
+@login_required
+def employee_map():
+    if current_user.role not in ("employee", "admin"):
+        abort(403)
+
+    orders = Order.query.order_by(Order.id.desc()).all()
+    map_orders = []
+    for order in orders:
+        try:
+            full_name = decrypt_data(order.client.full_name_encrypted)
+        except Exception:
+            app.logger.exception("Не удалось расшифровать ФИО клиента заявки %s", order.id)
+            full_name = "Не удалось загрузить ФИО"
+        try:
+            phone = decrypt_data(order.client.phone_encrypted)
+        except Exception:
+            app.logger.exception("Не удалось расшифровать телефон клиента заявки %s", order.id)
+            phone = "Не удалось загрузить телефон"
+
+        map_orders.append({
+            "id": order.id,
+            "latitude": float(order.latitude),
+            "longitude": float(order.longitude),
+            "depth": str(order.depth),
+            "price": str(order.price),
+            "client_name": full_name,
+            "client_phone": phone,
+            "status": order.status,
+            "status_label": ORDER_STATUSES.get(order.status, "Неизвестный статус"),
+        })
+
+    return render_template(
+        "employee_map.html",
+        orders=orders,
+        map_orders=map_orders,
+        statuses=ORDER_STATUSES,
+    )
+
+
+@app.route("/employee/orders/<int:order_id>/status", methods=["POST"])
+@login_required
+def update_order_status(order_id):
+    if current_user.role not in ("employee", "admin"):
+        abort(403)
+
+    new_status = request.form.get("status", "")
+    if new_status not in ORDER_STATUSES:
+        abort(400)
+
+    order = db.session.get(Order, order_id)
+    if order is None:
+        abort(404)
+
+    order.status = new_status
+    db.session.commit()
+    flash(f"Статус заявки №{order.id} обновлён.")
+    return redirect(url_for("employee_map"))
+
+
+@app.route("/admin")
+@login_required
+def admin_dashboard():
+    if current_user.role != "admin":
+        abort(403)
+
+    users = User.query.order_by(User.id.asc()).all()
+    user_rows = []
+    for user in users:
+        try:
+            full_name = decrypt_data(user.full_name_encrypted)
+        except Exception:
+            app.logger.exception("Не удалось расшифровать ФИО пользователя %s", user.id)
+            full_name = "Не удалось загрузить ФИО"
+        try:
+            phone = decrypt_data(user.phone_encrypted)
+        except Exception:
+            app.logger.exception("Не удалось расшифровать телефон пользователя %s", user.id)
+            phone = "Не удалось загрузить телефон"
+
+        user_rows.append({
+            "id": user.id,
+            "login": user.login,
+            "full_name": full_name,
+            "phone": phone,
+            "role": user.role,
+            "is_current_user": user.id == current_user.id,
+        })
+
+    return render_template("admin.html", users=user_rows)
+
+
+@app.route("/admin/users/<int:user_id>/role", methods=["POST"])
+@login_required
+def update_user_role(user_id):
+    if current_user.role != "admin":
+        abort(403)
+
+    user = db.session.get(User, user_id)
+    if user is None:
+        abort(404)
+
+    if user.id == current_user.id:
+        flash("Нельзя изменить собственную роль.")
+        return redirect(url_for("admin_dashboard"))
+
+    new_role = request.form.get("role", "")
+    if new_role not in {"client", "employee", "admin"}:
+        abort(400)
+
+    user.role = new_role
+    db.session.commit()
+    flash(f"Роль пользователя «{user.login}» изменена.")
+    return redirect(url_for("admin_dashboard"))
+
+
 @app.route("/logout", methods=["POST"])
 @login_required
 def logout():
@@ -233,4 +358,10 @@ def logout():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        order_columns = {column["name"] for column in inspect(db.engine).get_columns("orders")}
+        if "status" not in order_columns:
+            db.session.execute(text(
+                "ALTER TABLE orders ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'registered'"
+            ))
+            db.session.commit()
     app.run(debug=True, use_reloader=False)

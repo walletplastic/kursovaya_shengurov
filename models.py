@@ -46,5 +46,8 @@ class Order(db.Model):
     latitude = db.Column(db.Numeric(8, 6), nullable=False)
     longitude = db.Column(db.Numeric(9, 6), nullable=False)
     price = db.Column(db.Numeric(12, 2), nullable=False)
+    status = db.Column(
+        db.String(20), nullable=False, default="registered", server_default="registered"
+    )
 
     client = db.relationship("User", backref=db.backref("orders", lazy=True))

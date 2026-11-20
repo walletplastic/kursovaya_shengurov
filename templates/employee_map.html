@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Карта заявок — ГеоБур</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { min-height:100vh; font-family:Arial,sans-serif; color:#f4f6f8; background:#101b29; }
+        header { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:20px 7%; border-bottom:1px solid rgba(255,255,255,.12); background:#142235; }
+        .logo { color:#fff; font-size:25px; font-weight:700; letter-spacing:1px; text-decoration:none; }
+        .logo span { color:#f5a623; }
+        .logout-form button { border:1px solid #536174; border-radius:7px; padding:10px 16px; color:#e8edf2; background:transparent; cursor:pointer; }
+        main { width:min(1200px,90%); margin:34px auto 50px; }
+        .eyebrow { color:#f5a623; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px; }
+        h1 { font-size:clamp(28px,4vw,38px); margin-bottom:10px; }
+        .intro { color:#b7c2cf; line-height:1.6; margin-bottom:22px; }
+        .section-title { font-size:21px; margin:26px 0 14px; }
+        .flash { padding:12px 14px; margin-bottom:16px; border-radius:7px; color:#f5c978; background:rgba(245,166,35,.12); }
+        #orders-map { height:460px; border:1px solid #304158; border-radius:12px; overflow:hidden; z-index:0; }
+        .order-list { display:grid; gap:12px; }
+        .order-card { padding:18px; border:1px solid #304158; border-radius:10px; background:#1a2a3e; }
+        .order-card h3 { color:#f5a623; font-size:17px; margin-bottom:14px; }
+        .details { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; margin-bottom:16px; }
+        .detail span { display:block; color:#9eacbb; font-size:12px; margin-bottom:5px; }
+        .detail strong { font-size:14px; overflow-wrap:anywhere; }
+        .status-form { display:flex; align-items:center; gap:10px; }
+        select { min-width:200px; padding:10px 12px; border:1px solid #425064; border-radius:7px; color:#fff; background:#202f40; }
+        .save-button { padding:10px 14px; border:0; border-radius:7px; color:#17212c; background:#f5a623; font-weight:700; cursor:pointer; }
+        .empty { padding:18px; color:#aeb9c6; border:1px solid #304158; border-radius:10px; background:#1a2a3e; }
+        footer { padding:24px 7%; color:#8290a0; text-align:center; font-size:12px; }
+        .leaflet-popup-content-wrapper,.leaflet-popup-tip { color:#f4f6f8; background:#1a2a3e; }
+        .popup { min-width:210px; line-height:1.5; }
+        .popup h3 { color:#f5a623; margin-bottom:7px; }
+        @media(max-width:700px) { header { padding:17px 5%; } main { width:92%; margin-top:26px; } #orders-map { height:360px; } .details { grid-template-columns:repeat(2,minmax(0,1fr)); } .status-form { align-items:stretch; flex-direction:column; } select,.save-button { width:100%; } }
+    </style>
+</head>
+<body>
+<header>
+    <a href="/employee/map" class="logo">ГЕО<span>БУР</span></a>
+    <form class="logout-form" action="{{ url_for('logout') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit">Выйти из аккаунта</button>
+    </form>
+</header>
+<main>
+    <div class="eyebrow">Рабочее пространство</div>
+    <h1>Заявки на карте</h1>
+    <p class="intro">Выберите метку, чтобы посмотреть данные клиента. Статус заявки можно изменить в её карточке ниже.</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    <div id="orders-map" aria-label="Карта заявок на бурение"></div>
+
+    <h2 class="section-title">Все заявки ({{ orders|length }})</h2>
+    <section class="order-list">
+        {% if orders %}
+            {% for order in orders %}
+            <article class="order-card" id="order-{{ order.id }}">
+                <h3>Заявка №{{ order.id }}</h3>
+                {% set map_order = map_orders[loop.index0] %}
+                <div class="details">
+                    <div class="detail"><span>Клиент</span><strong>{{ map_order.client_name }}</strong></div>
+                    <div class="detail"><span>Телефон</span><strong>{{ map_order.client_phone }}</strong></div>
+                    <div class="detail"><span>Глубина</span><strong>{{ order.depth }} м</strong></div>
+                    <div class="detail"><span>Цена</span><strong>{{ "{:,.2f}".format(order.price).replace(",", " ") }} ₽</strong></div>
+                    <div class="detail"><span>Координаты</span><strong>{{ order.latitude }}, {{ order.longitude }}</strong></div>
+                    <div class="detail"><span>Статус</span><strong>{{ statuses.get(order.status, "Неизвестный статус") }}</strong></div>
+                </div>
+                <form class="status-form" action="{{ url_for('update_order_status', order_id=order.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <label for="status-{{ order.id }}">Изменить статус:</label>
+                    <select id="status-{{ order.id }}" name="status">
+                        {% for status_value, status_label in statuses.items() %}
+                        <option value="{{ status_value }}" {% if order.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="save-button" type="submit">Сохранить статус</button>
+                </form>
+            </article>
+            {% endfor %}
+        {% else %}
+            <p class="empty">Пока нет заявок с координатами.</p>
+        {% endif %}
+    </section>
+</main>
+<footer>© 2026 ГеоБур. Информационная система бурения скважин.</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const orders = {{ map_orders|tojson }};
+    const map = L.map('orders-map').setView([51.73, 36.19], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const points = [];
+    orders.forEach((order) => {
+        const isCompleted = order.status === 'completed';
+        const marker = L.circleMarker([order.latitude, order.longitude], {
+            radius: 9,
+            color: isCompleted ? '#15803d' : '#b45309',
+            weight: 2,
+            fillColor: isCompleted ? '#22c55e' : '#f5a623',
+            fillOpacity: 0.9
+        }).addTo(map);
+        const content = document.createElement('div');
+        content.className = 'popup';
+        const title = document.createElement('h3');
+        title.textContent = `Заявка №${order.id}`;
+        content.appendChild(title);
+        [
+            `Клиент: ${order.client_name}`,
+            `Телефон: ${order.client_phone}`,
+            `Глубина: ${order.depth} м`,
+            `Цена: ${Number(order.price).toLocaleString('ru-RU')} ₽`,
+            `Статус: ${order.status_label}`
+        ].forEach((line) => {
+            const row = document.createElement('div');
+            row.textContent = line;
+            content.appendChild(row);
+        });
+        marker.bindPopup(content);
+        marker.on('click', () => {
+            const card = document.getElementById(`order-${order.id}`);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        points.push([order.latitude, order.longitude]);
+    });
+    if (points.length === 1) map.setView(points[0], 13);
+    else if (points.length > 1) map.fitBounds(points, { padding: [30, 30] });
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Администрирование — ГеоБур</title>
+    <style>
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { min-height:100vh; font-family:Arial,sans-serif; color:#f4f6f8; background:#101b29; }
+        header { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:20px 6%; border-bottom:1px solid rgba(255,255,255,.12); background:#142235; }
+        .logo { color:#fff; font-size:24px; font-weight:700; letter-spacing:1px; text-decoration:none; white-space:nowrap; }
+        .logo span { color:#f5a623; }
+        nav { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:10px; }
+        nav a,.logout-form button { padding:9px 12px; border:1px solid #536174; border-radius:7px; color:#e8edf2; background:transparent; text-decoration:none; font-size:14px; cursor:pointer; }
+        nav a:hover,.logout-form button:hover { background:#26384d; }
+        main { width:min(1200px,92%); margin:38px auto 50px; }
+        .eyebrow { color:#f5a623; font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px; }
+        h1 { font-size:clamp(28px,4vw,38px); margin-bottom:10px; }
+        .intro { color:#b7c2cf; line-height:1.6; margin-bottom:22px; }
+        .flash { padding:12px 14px; margin-bottom:16px; border-radius:7px; color:#f5c978; background:rgba(245,166,35,.12); }
+        .table-wrap { overflow-x:auto; border:1px solid #304158; border-radius:10px; background:#1a2a3e; }
+        table { width:100%; border-collapse:collapse; min-width:820px; }
+        th,td { padding:14px 15px; text-align:left; border-bottom:1px solid #304158; vertical-align:middle; }
+        th { color:#aeb9c6; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; background:#202f40; }
+        td { font-size:14px; }
+        tr:last-child td { border-bottom:0; }
+        .role-form { display:flex; align-items:center; gap:8px; }
+        select { min-width:140px; padding:9px 10px; border:1px solid #425064; border-radius:7px; color:#fff; background:#202f40; }
+        .save-button { padding:9px 12px; border:0; border-radius:7px; color:#17212c; background:#f5a623; font-weight:700; cursor:pointer; }
+        .self-role { color:#f5c978; }
+        .empty { padding:18px; color:#aeb9c6; }
+        footer { padding:24px 7%; color:#8290a0; text-align:center; font-size:12px; }
+        @media(max-width:700px) { header { align-items:flex-start; flex-direction:column; padding:17px 5%; } nav { justify-content:flex-start; } main { margin-top:27px; } }
+    </style>
+</head>
+<body>
+<header>
+    <a href="{{ url_for('admin_dashboard') }}" class="logo">ГЕО<span>БУР</span></a>
+    <nav aria-label="Разделы системы">
+        <a href="{{ url_for('client_dashboard') }}">Кабинет клиента</a>
+        <a href="{{ url_for('employee_map') }}">Карта заявок</a>
+        <form class="logout-form" action="{{ url_for('logout') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit">Выйти</button>
+        </form>
+    </nav>
+</header>
+<main>
+    <div class="eyebrow">Панель администратора</div>
+    <h1>Пользователи</h1>
+    <p class="intro">Здесь можно просматривать зарегистрированных пользователей и назначать им роли. У каждого пользователя сохраняется только одна роль.</p>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}
+    {% endwith %}
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>ID</th><th>ФИО</th><th>Телефон</th><th>Логин</th><th>Роль</th><th>Назначить роль</th></tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.full_name }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ user.login }}</td>
+                    <td>{{ {"client": "Клиент", "employee": "Сотрудник", "admin": "Администратор"}.get(user.role, user.role) }}</td>
+                    <td>
+                        {% if user.is_current_user %}
+                            <span class="self-role">Свою роль менять нельзя</span>
+                        {% else %}
+                        <form class="role-form" action="{{ url_for('update_user_role', user_id=user.id) }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <select name="role" aria-label="Новая роль для {{ user.login }}">
+                                <option value="client" {% if user.role == "client" %}selected{% endif %}>Клиент</option>
+                                <option value="employee" {% if user.role == "employee" %}selected{% endif %}>Сотрудник</option>
+                                <option value="admin" {% if user.role == "admin" %}selected{% endif %}>Администратор</option>
+                            </select>
+                            <button class="save-button" type="submit">Сохранить</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td class="empty" colspan="6">Пользователей пока нет.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+<footer>© 2026 ГеоБур. Информационная система бурения скважин.</footer>
+</body>
+</html>
